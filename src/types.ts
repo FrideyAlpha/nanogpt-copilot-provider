@@ -1,4 +1,4 @@
-import { z, ZodLazy } from "zod";
+import { z } from "zod";
 
 const ModelModalitySpec = z.literal("text").or(z.literal("image")).or(z.literal("file"));
 
@@ -26,79 +26,64 @@ const ModelFeatureSpec = z.literal("tools")
   .or(z.literal("web_search"))
   .or(z.literal("reasoning"));
 
-const SyntheticModelDetailsSchema = z.object({
-	// Synthetic specific params
-	always_on: z.boolean(),
-	provider: z.string(),
 
-	// Required OpenRouter params
+
+// NanoGPT Model Details Schema (OpenAI-compatible)
+const NanoGPTModelDetailsSchema = z.object({
+	// Required OpenAI-compatible params
 	id: z.string(),
-	hugging_face_id: z.string(),
-	name: z.string(),
-	input_modalities: z.array(ModelModalitySpec),
-	output_modalities: z.array(ModelModalitySpec),
-	context_length: z.number(),
-	pricing: z.object({
-		prompt: z.string(),
-		completion: z.string(),
-		image: z.string(),
-		request: z.string(),
-		input_cache_reads: z.string(),
-		input_cache_writes: z.string(),
-	}),
-
-	// Required OpenRouter params that are not provided for non-self-hosted models.
+	object: z.string().default("model"),
 	created: z.number().optional(),
-	max_output_length: z.number().optional(),
-	quantization: QuantizationSpec.optional(),
-	supported_sampling_parameters: z.array(SamplingParameterSpec).optional(),
+
+	// Model properties
+	owned_by: z.string().optional(),
+
+	// Optional fields for vision and other capabilities
+	vision: z.boolean().optional(),
+
+	// Context and output limits - API may return null for some models
+	context_length: z.number().nullable().optional(),
+	max_output_length: z.number().nullable().optional(),
+
+	// Pricing information (optional) - API returns numbers, not strings
+	pricing: z.object({
+		prompt: z.number().optional(),
+		completion: z.number().optional(),
+		image: z.number().optional(),
+		request: z.number().optional(),
+	}).optional(),
+
+	// Supported features
 	supported_features: z.array(ModelFeatureSpec).optional(),
-
-	// Opetional OpenRouter params.
-	description: z.string().optional(),
-	openrouter: z.object({
-		slug: z.string(),
-	}).optional(),
-	datacenters: z.array(z.object({
-		country_code: z.string(),
-	})).optional(),
+	supported_sampling_parameters: z.array(SamplingParameterSpec).optional(),
 });
-export type SyntheticModelDetails = z.infer<typeof SyntheticModelDetailsSchema>;
+export type NanoGPTModelDetails = z.infer<typeof NanoGPTModelDetailsSchema>;
 
-// Zod schema for validating the SyntheticModelsResponse
-export const SyntheticModelsResponseSchema = z.object({
-	data: z.array(SyntheticModelDetailsSchema),
+// Zod schema for validating the NanoGPTModelsResponse
+export const NanoGPTModelsResponseSchema = z.object({
+	object: z.string(),
+	data: z.array(NanoGPTModelDetailsSchema),
 });
 
-// Zod schema for validating the models.dev API response
-const SyntheticModelDevDetailsSchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	attachment: z.boolean(),
-	reasoning: z.boolean(),
-	temperature: z.boolean(),
-	tool_call: z.boolean(),
-	knowledge: z.string().optional(),
-	release_date: z.string().optional(),
-	last_updated: z.string().optional(),
-	modalities: z.object({
-		input: z.array(z.string()),
-		output: z.array(z.string()),
-	}),
-	open_weights: z.boolean(),
-	cost: z.object({
-		input: z.number(),
-		output: z.number(),
-	}),
-	limit: z.object({
-		context: z.number(),
-		output: z.number(),
-	}).optional(),
-});
-export type SyntheticModelDevDetails = z.infer<typeof SyntheticModelDevDetailsSchema>;
+// NanoGPT Configuration Schema
+export const NanoGPTConfigurationSchema = z.object({
+	reasoning: z.object({
+		enabled: z.boolean().default(true),
+		defaultEffort: z.enum(["low", "medium", "high"]).default("medium"),
+	}).default({ enabled: true, defaultEffort: "medium" }),
 
-export const SyntheticModelsDevApiResponseSchema = z.object({
-	synthetic: z.object({
-		models: z.record(z.string(), SyntheticModelDevDetailsSchema),
-	}),
+	memory: z.object({
+		enabled: z.boolean().default(true),
+		defaultDays: z.number().min(1).max(365).default(30),
+	}).default({ enabled: true, defaultDays: 30 }),
+
+	search: z.object({
+		enabled: z.boolean().default(true),
+		defaultMode: z.enum(["standard", "deep"]).default("standard"),
+	}).default({ enabled: true, defaultMode: "standard" }),
+
+	byok: z.object({
+		enabled: z.boolean().default(false),
+		defaultProvider: z.enum(["openai", "anthropic", "google"]).default("openai"),
+	}).default({ enabled: false, defaultProvider: "openai" }),
 });
