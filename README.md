@@ -30,11 +30,11 @@ Use NanoGPT to chat with advanced language models featuring reasoning, memory, s
 
    <img src="./assets/docs_select_provider.png" width="500">
 
-1. Provide your NanoGPT API Token. (Get yours here: https://nano-gpt.com/dashboard/api)
+2. Provide your NanoGPT API Token. (Get yours here: https://nano-gpt.com/api)
 
    <img src="./assets/docs_enter_api_key.png" width="500">
 
-1. Choose the models you want to add to the model picker. 🥳
+3. Choose the models you want to add to the model picker. 🥳
 
     <img src="./assets/docs_model_list.png" width="500">
 
@@ -247,7 +247,6 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
-
 - Original project by [@mcowger](https://github.com/mcowger)
 - VS Code Extension API team
 - OpenAI for the Chat Completions API
