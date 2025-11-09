@@ -1,8 +1,8 @@
 {
-	"name": "synthetic-copilot-provider",
-	"publisher": "SyntheticLab",
-	"displayName": "Synthetic Provider for GitHub Copilot",
-	"description": "Synthetic Provider for Github Copilot",
+	"name": "nanogpt-copilot-provider",
+	"publisher": "NanoGPT",
+	"displayName": "NanoGPT Provider for GitHub Copilot",
+	"description": "NanoGPT Provider for Github Copilot",
 	"icon": "assets/logo.png",
 	"version": "0.10.0",
 	"engines": {
@@ -16,34 +16,30 @@
 		"color": "#100f11",
 		"theme": "dark"
 	},
-	"homepage": "https://synthetic.new",
+	"homepage": "https://nano-gpt.com",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/synthetic-lab/synthetic-copilot-provider"
+		"url": "https://github.com/nanogpt/nanogpt-copilot-provider"
 	},
 	"contributes": {
 		"languageModelChatProviders": [
 			{
-				"vendor": "synthetic",
-				"displayName": "Synthetic",
-				"managementCommand": "synthetic.manage"
+				"vendor": "nanogpt",
+				"displayName": "NanoGPT",
+				"managementCommand": "nanogpt.manage"
 			}
 		],
 		"commands": [
 			{
-				"command": "synthetic.manage",
-				"title": "Manage Synthetic Provider"
-			},
-			{
-				"command": "synthetic.configureTemperature",
-				"title": "Configure Model Temperature"
+				"command": "nanogpt.manage",
+				"title": "Manage NanoGPT Provider"
 			}
 		],
 		"configuration": {
-			"title": "Synthetic Provider",
+			"title": "NanoGPT Provider",
 			"properties": {
-				"synthetic.modelTemperatures": {
+				"nanogpt.modelTemperatures": {
 					"type": "object",
 					"default": {},
 					"description": "Custom temperature values for each model. Keys are model IDs, values are temperature numbers between 0 and 2.",
@@ -52,12 +48,57 @@
 						"minimum": 0,
 						"maximum": 2
 					}
+				},
+				"reasoning.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable reasoning capabilities for NanoGPT models."
+				},
+				"reasoning.defaultEffort": {
+					"type": "string",
+					"enum": ["low", "medium", "high"],
+					"default": "medium",
+					"description": "Default reasoning effort level for NanoGPT models."
+				},
+				"memory.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable memory capabilities for NanoGPT models."
+				},
+				"memory.defaultDays": {
+					"type": "number",
+					"default": 30,
+					"minimum": 1,
+					"maximum": 365,
+					"description": "Default memory retention days for NanoGPT models."
+				},
+				"search.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable search capabilities for NanoGPT models."
+				},
+				"search.defaultMode": {
+					"type": "string",
+					"enum": ["standard", "deep"],
+					"default": "standard",
+					"description": "Default search mode for NanoGPT models."
+				},
+				"byok.enabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable BYOK (Bring Your Own Key) capabilities for NanoGPT models."
+				},
+				"byok.defaultProvider": {
+					"type": "string",
+					"enum": ["openai", "anthropic", "google"],
+					"default": "openai",
+					"description": "Default BYOK provider for NanoGPT models."
 				}
 			}
 		}
 	},
 	"activationEvents": [
-		"onLanguageModelChat:synthetic"
+		"onLanguageModelChat:nanogpt"
 	],
 	"main": "./out/extension.js",
 	"scripts": {
@@ -67,7 +108,7 @@
 		"format": "prettier --write .",
 		"watch": "tsc -watch -p ./",
 		"test": "npm run compile && vscode-test",
-		"package": "vsce package --out synthetic-copilot-provider.vsix"
+		"package": "vsce package --out nanogpt-copilot-provider.vsix"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.13.0",
