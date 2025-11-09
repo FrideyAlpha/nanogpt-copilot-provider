@@ -3,20 +3,10 @@ import * as vscode from "vscode";
 
 import { convertRequestToOpenAI } from "../utils";
 
-interface OpenAIToolCall {
-	id: string;
-	type: "function";
-	function: { name: string; arguments: string };
-}
-interface ConvertedMessage {
-	role: "user" | "assistant" | "tool";
-	content?: string;
-	name?: string;
-	tool_calls?: OpenAIToolCall[];
-	tool_call_id?: string;
-}
 
-suite("Synthetic Chat Provider Extension", () => {
+
+
+suite("NanoGPT Chat Provider Extension", () => {
 	suite("provider", () => {
 
 	});
@@ -214,7 +204,7 @@ suite("Synthetic Chat Provider Extension", () => {
 		test("should provide token count for text string", async () => {
 			// Mock the provideTokenCount method
 			const mockProvider = {
-				provideTokenCount: async (model: any, text: string | vscode.LanguageModelChatRequestMessage, token: vscode.CancellationToken) => {
+				provideTokenCount: async (_model: any, _text: string | vscode.LanguageModelChatRequestMessage, _token: vscode.CancellationToken) => {
 					return 44;
 				}
 			};
@@ -231,7 +221,7 @@ suite("Synthetic Chat Provider Extension", () => {
 		test("should provide token count for chat message", async () => {
 			// Mock the provideTokenCount method
 			const mockProvider = {
-				provideTokenCount: async (model: any, text: string | vscode.LanguageModelChatRequestMessage, token: vscode.CancellationToken) => {
+				provideTokenCount: async (_model: any, _text: string | vscode.LanguageModelChatRequestMessage, _token: vscode.CancellationToken) => {
 					return 44;
 				}
 			};

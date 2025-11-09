@@ -41,7 +41,7 @@ suite("Configuration Tests", () => {
 	test("temperature values are validated to be between 0 and 2", async () => {
 		// This test validates that the configuration schema would reject invalid values
 		// The actual validation happens at the VS Code configuration level and in the UI
-		const config = vscode.workspace.getConfiguration("synthetic");
+		const config = vscode.workspace.getConfiguration("nanogpt");
 		const inspect = config.inspect("modelTemperatures");
 		
 		assert.ok(inspect);

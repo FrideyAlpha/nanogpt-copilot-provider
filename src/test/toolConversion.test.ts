@@ -98,8 +98,7 @@ suite("Tool Conversion Tests", () => {
 
 					// Ensure required parameters exist in properties
 					for (const requiredParam of tool.function.parameters.required) {
-						// @ts-ignore - TypeScript can't infer the exact property structure
-						assert.ok((tool.function.parameters.properties as any)[requiredParam], `Tool ${tool.function.name} should have property for required param ${requiredParam}`);
+						assert.ok((tool.function.parameters.properties as Record<string, unknown>)[requiredParam], `Tool ${tool.function.name} should have property for required param ${requiredParam}`);
 					}
 				}
 			}
@@ -151,8 +150,8 @@ suite("Tool Conversion Tests", () => {
 
 		// Compare each tool
 		for (let i = 0; i < sampletools.length; i++) {
-			const expectedTool: any = oaitools[i];
-			const actualTool: any = result.tools![i];
+			const expectedTool = oaitools[i] as any;
+			const actualTool = result.tools![i] as any;
 
 			// Check basic structure
 			assert.strictEqual(actualTool.type, "function", "Tool should have type 'function'");
@@ -199,7 +198,7 @@ suite("Tool Conversion Tests", () => {
 		assert.ok(result.tools, "Should have tools property");
 		assert.strictEqual(result.tools!.length, 1, "Should have one tool");
 
-		const tool = result.tools![0];
+		const tool = result.tools![0] as any;
 		assert.strictEqual(tool.function.name, "test_tool", "Should have correct name");
 		assert.strictEqual(tool.function.description, "A tool with no schema", "Should have correct description");
 
