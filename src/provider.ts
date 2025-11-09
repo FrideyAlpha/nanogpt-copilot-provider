@@ -15,19 +15,19 @@ import {
 } from "./utils";
 import { ThinkSegment, ThinkTagParser } from "./thinkParser";
 import {
-	SyntheticModelsService,
+	NanoGPTModelsService,
 	BASE_URL
-} from "./syntheticModels";
+} from "./nanogptModels";
 import { getModelTemperature } from "./config";
 
-export class SyntheticChatModelProvider implements LanguageModelChatProvider {
-	private _modelsService: SyntheticModelsService;
+export class NanoGPTChatModelProvider implements LanguageModelChatProvider {
+	private _modelsService: NanoGPTModelsService;
 	/**
 	 * Create a provider using the given secret storage for the API key.
 	 * @param secrets VS Code secret storage.
 	 */
 	constructor(private readonly secrets: vscode.SecretStorage, private readonly userAgent: string) {
-		this._modelsService = new SyntheticModelsService(userAgent);
+		this._modelsService = new NanoGPTModelsService(userAgent);
 	}
 
 	async provideLanguageModelChatInformation(
@@ -58,14 +58,34 @@ export class SyntheticChatModelProvider implements LanguageModelChatProvider {
 
 		const apiKey = await this._modelsService.ensureApiKey(this.secrets, true);
 		if (!apiKey) {
-			throw new Error("Synthetic API key not found");
+			throw new Error("NanoGPT API key not found");
 		}
 
 		try {
+			const config = vscode.workspace.getConfiguration("nanogpt");
+
+			// Modify model ID for memory and search
+			let modelId = model.id;
+			if (config.get<boolean>("memory.enabled")) {
+				const days = config.get<number>("memory.defaultDays") ?? 30;
+				modelId += `:memory-${days}`;
+			}
+			if (config.get<boolean>("search.enabled")) {
+				modelId += `:online`;
+			}
+
 			const openAIRequest: OpenAI.ChatCompletionCreateParamsStreaming = {
 				...convertRequestToOpenAI(messages, options.tools as vscode.LanguageModelChatTool[]),
-				model: model.id
+				model: modelId,
 			};
+
+			// Add reasoning if enabled
+			if (config.get<boolean>("nanogpt.reasoning.enabled")) {
+				(openAIRequest as any).reasoning = {
+					enabled: true,
+					effort: config.get<string>("nanogpt.reasoning.defaultEffort") ?? "medium",
+				};
+			}
 
 			// Apply custom temperature if configured
 			const customTemperature = getModelTemperature(model.id);
@@ -73,10 +93,19 @@ export class SyntheticChatModelProvider implements LanguageModelChatProvider {
 				openAIRequest.temperature = customTemperature;
 			}
 
+			const headers: Record<string, string> = { 'User-Agent': this.userAgent };
+
+			// Add BYOK headers if enabled
+			if (config.get<boolean>("byok.enabled")) {
+				headers['x-use-byok'] = 'true';
+				// Optionally add provider if needed by the API
+				// headers['x-byok-provider'] = config.get<string>("byok.defaultProvider") ?? "openai";
+			}
+
 			const openai = new OpenAI({
 				baseURL: BASE_URL,
 				apiKey: apiKey,
-				defaultHeaders: { 'User-Agent': this.userAgent }
+				defaultHeaders: headers,
 			});
 
 			const stream = await openai.chat.completions.create(openAIRequest);
@@ -88,7 +117,7 @@ export class SyntheticChatModelProvider implements LanguageModelChatProvider {
 				}
 				if (!state.id || !state.name) {
 					console.warn(
-						`[Synthetic Model Provider] Tool call state incomplete (missing id or name) for index ${index} when finalizing:`,
+						`[NanoGPT Model Provider] Tool call state incomplete (missing id or name) for index ${index} when finalizing:`,
 						state
 					);
 					return;
@@ -101,7 +130,7 @@ export class SyntheticChatModelProvider implements LanguageModelChatProvider {
 						input = JSON.parse(rawArgs);
 					} catch (error) {
 						console.error(
-							`[Synthetic Model Provider] Failed to parse aggregated tool call arguments for ${state.name} (${state.id}) at index ${index}:`,
+							`[NanoGPT Model Provider] Failed to parse aggregated tool call arguments for ${state.name} (${state.id}) at index ${index}:`,
 							rawArgs,
 							error
 						);
@@ -147,7 +176,7 @@ export class SyntheticChatModelProvider implements LanguageModelChatProvider {
 				if (Array.isArray(toolCalls) && toolCalls.length > 0) {
 					for (const toolCall of toolCalls) {
 						if (!toolCall || typeof toolCall !== "object") {
-							console.warn("[Synthetic Model Provider] Skipping malformed tool call payload:", toolCall);
+							console.warn("[NanoGPT Model Provider] Skipping malformed tool call payload:", toolCall);
 							continue;
 						}
 
@@ -197,12 +226,12 @@ export class SyntheticChatModelProvider implements LanguageModelChatProvider {
 				}
 			}
 		} catch (error) {
-			console.error("[Synthetic Model Provider] Error during chat completion:", error);
+			console.error("[NanoGPT Model Provider] Error during chat completion:", error);
 
 			// Emit user-friendly error message
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 			vscode.window.showInformationMessage(
-				`Failed to get completion from Synthetic: ${errorMessage}. Please check your API key and connection.`
+				`Failed to get completion from NanoGPT: ${errorMessage}. Please check your API key and connection.`
 			);
 
 			throw error;
@@ -275,7 +304,7 @@ export class SyntheticChatModelProvider implements LanguageModelChatProvider {
 				progress.report(new thinkingCtor(chunk));
 				return;
 			} catch (error) {
-				console.warn("[Synthetic Model Provider] Failed to create thinking part, falling back to text part:", error);
+				console.warn("[NanoGPT Model Provider] Failed to create thinking part, falling back to text part:", error);
 			}
 		}
 

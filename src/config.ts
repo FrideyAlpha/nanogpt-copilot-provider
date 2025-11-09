@@ -6,7 +6,7 @@ import * as vscode from "vscode";
  * @returns The custom temperature or undefined if not set
  */
 export function getModelTemperature(modelId: string): number | undefined {
-	const config = vscode.workspace.getConfiguration("synthetic");
+	const config = vscode.workspace.getConfiguration("nanogpt");
 	const temperatures = config.get<Record<string, number>>("modelTemperatures");
 	return temperatures?.[modelId];
 }
@@ -17,7 +17,7 @@ export function getModelTemperature(modelId: string): number | undefined {
  * @param temperature The temperature value (0-2)
  */
 export async function setModelTemperature(modelId: string, temperature: number | undefined): Promise<void> {
-	const config = vscode.workspace.getConfiguration("synthetic");
+	const config = vscode.workspace.getConfiguration("nanogpt");
 	// VS Code configuration values are returned as immutable/frozen objects.
 	// Clone before mutating to avoid proxy/extensibility errors in tests/runtime.
 	const existing = config.get<Record<string, number>>("modelTemperatures") || {};
@@ -32,17 +32,14 @@ export async function setModelTemperature(modelId: string, temperature: number |
 	await config.update("modelTemperatures", temperatures, vscode.ConfigurationTarget.Global);
 }
 
-/**
- * Show a UI to configure temperature for a model
- */
-export async function showTemperatureConfigUI(secrets: vscode.SecretStorage): Promise<void> {
+async function configureModelTemperature(secrets: vscode.SecretStorage): Promise<void> {
 	// First, we need to get the list of available models
-	const { SyntheticModelsService } = await import("./syntheticModels.js");
-	const modelsService = new SyntheticModelsService("synthetic-vscode-chat/config");
+	const { NanoGPTModelsService } = await import("./nanogptModels.js");
+	const modelsService = new NanoGPTModelsService("nanogpt-vscode-chat/config");
 
 	const apiKey = await modelsService.ensureApiKey(secrets, false);
 	if (!apiKey) {
-		vscode.window.showInformationMessage("Please configure your Synthetic API key first.");
+		vscode.window.showInformationMessage("Please configure your NanoGPT API key first.");
 		return;
 	}
 
@@ -61,11 +58,21 @@ export async function showTemperatureConfigUI(secrets: vscode.SecretStorage): Pr
 			modelId: string;
 		}
 
-		const modelItems: ModelItem[] = models.map((m) => ({
-			label: m.id,
-			description: getModelTemperature(m.id)?.toFixed(2) || "Default",
-			modelId: m.id
-		}));
+		const config = vscode.workspace.getConfiguration("nanogpt");
+		const modelItems: ModelItem[] = models.map((m) => {
+			let description = getModelTemperature(m.id)?.toFixed(2) || "Default";
+			if (config.get<boolean>("memory.enabled")) {
+				description += ` / Mem: ${config.get<number>("memory.defaultDays")}d`;
+			}
+			if (config.get<boolean>("nanogpt.search.enabled")) {
+				description += " / Search";
+			}
+			return {
+				label: m.id,
+				description,
+				modelId: m.id
+			};
+		});
 
 		const selectedModel = await vscode.window.showQuickPick(modelItems, {
 			placeHolder: "Select a model to configure temperature",
@@ -114,5 +121,169 @@ export async function showTemperatureConfigUI(secrets: vscode.SecretStorage): Pr
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 		vscode.window.showErrorMessage(`Failed to configure temperature: ${errorMessage}`);
+	}
+}
+
+async function configureReasoning(): Promise<void> {
+	const config = vscode.workspace.getConfiguration("nanogpt");
+	const isEnabled = config.get<boolean>("nanogpt.reasoning.enabled");
+
+	const selected = await vscode.window.showQuickPick(
+		[
+			{ label: "Enable", picked: isEnabled },
+			{ label: "Disable", picked: !isEnabled },
+		],
+		{ placeHolder: "Select reasoning state" }
+	);
+
+	if (!selected) {return;}
+
+	const newIsEnabled = selected.label === "Enable";
+	await config.update("nanogpt.reasoning.enabled", newIsEnabled, vscode.ConfigurationTarget.Global);
+
+	if (newIsEnabled) {
+		const effort = config.get<string>("nanogpt.reasoning.defaultEffort");
+		const effortSelection = await vscode.window.showQuickPick(
+			[
+				{ label: "low", picked: effort === "low" },
+				{ label: "medium", picked: effort === "medium" },
+				{ label: "high", picked: effort === "high" },
+			],
+			{ placeHolder: "Select default effort for reasoning" }
+		);
+		if (effortSelection) {
+			await config.update("nanogpt.reasoning.defaultEffort", effortSelection.label, vscode.ConfigurationTarget.Global);
+			vscode.window.showInformationMessage(`Reasoning enabled with ${effortSelection.label} effort.`);
+		}
+	} else {
+		vscode.window.showInformationMessage("Reasoning disabled.");
+	}
+}
+
+async function configureMemory(): Promise<void> {
+	const config = vscode.workspace.getConfiguration("nanogpt");
+	const isEnabled = config.get<boolean>("nanogpt.memory.enabled");
+
+	const selected = await vscode.window.showQuickPick(
+		[
+			{ label: "Enable", picked: isEnabled },
+			{ label: "Disable", picked: !isEnabled },
+		],
+		{ placeHolder: "Select memory state" }
+	);
+
+	if (!selected) {return;}
+
+	const newIsEnabled = selected.label === "Enable";
+	await config.update("nanogpt.memory.enabled", newIsEnabled, vscode.ConfigurationTarget.Global);
+
+	if (newIsEnabled) {
+		const days = config.get<number>("nanogpt.memory.defaultDays");
+		const daysInput = await vscode.window.showInputBox({
+			prompt: "Enter memory duration in days (1-365)",
+			value: days?.toString() ?? "30",
+			validateInput: (value) => {
+				const num = parseInt(value, 10);
+				if (isNaN(num) || num < 1 || num > 365) {
+					return "Please enter a number between 1 and 365.";
+				}
+				return null;
+			},
+		});
+		if (daysInput) {
+			await config.update("nanogpt.memory.defaultDays", parseInt(daysInput, 10), vscode.ConfigurationTarget.Global);
+			vscode.window.showInformationMessage(`Memory enabled for ${daysInput} days.`);
+		}
+	} else {
+		vscode.window.showInformationMessage("Memory disabled.");
+	}
+}
+
+async function configureSearch(): Promise<void> {
+	const config = vscode.workspace.getConfiguration("nanogpt");
+	const isEnabled = config.get<boolean>("nanogpt.search.enabled");
+
+	const selected = await vscode.window.showQuickPick(
+		[
+			{ label: "Enable", picked: isEnabled },
+			{ label: "Disable", picked: !isEnabled },
+		],
+		{ placeHolder: "Select search state" }
+	);
+
+	if (!selected) {return;}
+
+	const newIsEnabled = selected.label === "Enable";
+	await config.update("nanogpt.search.enabled", newIsEnabled, vscode.ConfigurationTarget.Global);
+
+	if (newIsEnabled) {
+		const mode = config.get<string>("nanogpt.search.defaultMode");
+		const modeSelection = await vscode.window.showQuickPick(
+			[
+				{ label: "standard", picked: mode === "standard" },
+				{ label: "deep", picked: mode === "deep" },
+			],
+			{ placeHolder: "Select search mode" }
+		);
+		if (modeSelection) {
+			await config.update("nanogpt.search.defaultMode", modeSelection.label, vscode.ConfigurationTarget.Global);
+			vscode.window.showInformationMessage(`Search enabled in ${modeSelection.label} mode.`);
+		}
+	} else {
+		vscode.window.showInformationMessage("Search disabled.");
+	}
+}
+
+async function configureBYOK(): Promise<void> {
+	const config = vscode.workspace.getConfiguration("nanogpt");
+	const isEnabled = config.get<boolean>("nanogpt.byok.enabled");
+
+	const selected = await vscode.window.showQuickPick(
+		[
+			{ label: "Enable", picked: isEnabled },
+			{ label: "Disable", picked: !isEnabled },
+		],
+		{ placeHolder: "Select BYOK state" }
+	);
+
+	if (!selected) {return;}
+
+	const newIsEnabled = selected.label === "Enable";
+	await config.update("nanogpt.byok.enabled", newIsEnabled, vscode.ConfigurationTarget.Global);
+
+	if (newIsEnabled) {
+		const provider = config.get<string>("nanogpt.byok.defaultProvider");
+		const providerSelection = await vscode.window.showQuickPick(
+			[
+				{ label: "openai", picked: provider === "openai" },
+				{ label: "anthropic", picked: provider === "anthropic" },
+				{ label: "google", picked: provider === "google" },
+			],
+			{ placeHolder: "Select BYOK provider" }
+		);
+		if (providerSelection) {
+			await config.update("nanogpt.byok.defaultProvider", providerSelection.label, vscode.ConfigurationTarget.Global);
+			vscode.window.showInformationMessage(`BYOK enabled with ${providerSelection.label} provider.`);
+		}
+	} else {
+		vscode.window.showInformationMessage("BYOK disabled.");
+	}
+}
+
+export async function showNanoGPTConfigUI(secrets: vscode.SecretStorage): Promise<void> {
+	const options: Record<string, () => Promise<void>> = {
+		"Configure Model Temperature": () => configureModelTemperature(secrets),
+		"Configure Reasoning": configureReasoning,
+		"Configure Memory": configureMemory,
+		"Configure Search": configureSearch,
+		"Configure BYOK": configureBYOK,
+	};
+
+	const selectedOption = await vscode.window.showQuickPick(Object.keys(options), {
+		placeHolder: "Select a configuration option",
+	});
+
+	if (selectedOption) {
+		await options[selectedOption]();
 	}
 }

@@ -4,16 +4,12 @@ import { get_encoding } from "tiktoken";
 import {
 	CancellationToken,
 	LanguageModelChatInformation,
-	LanguageModelChatProvider,
 	LanguageModelChatRequestMessage,
 	LanguageModelChatTool,
-	ProvideLanguageModelChatResponseOptions,
 	LanguageModelToolCallPart,
 	LanguageModelTextPart,
 	LanguageModelChatMessageRole,
-	LanguageModelResponsePart,
 	LanguageModelToolResultPart,
-	Progress,
 } from "vscode";
 /**
  * Convert an array of VS Code LanguageModelChatRequestMessage to a single OpenAI ChatCompletionCreateParamsStreaming
@@ -21,7 +17,10 @@ import {
  * @param tools Optional array of tool definitions to include in the request
  * @returns OpenAI ChatCompletionCreateParamsStreaming object with all messages collapsed into one conversation
  */
-export function convertRequestToOpenAI(messages: LanguageModelChatRequestMessage[], tools?: LanguageModelChatTool[]): OpenAI.ChatCompletionCreateParamsStreaming {
+export function convertRequestToOpenAI(
+	messages: LanguageModelChatRequestMessage[],
+	tools?: LanguageModelChatTool[]
+): OpenAI.ChatCompletionCreateParamsStreaming {
 	const openaiMessages: OpenAI.ChatCompletionMessageParam[] = [];
 
 	for (const message of messages) {
@@ -107,19 +106,19 @@ export function convertRequestToOpenAI(messages: LanguageModelChatRequestMessage
 		}
 	}
 
-	const result: any = {
+	const result: OpenAI.ChatCompletionCreateParamsStreaming = {
 		stream: true,
 		messages: openaiMessages
-	};
+	} as OpenAI.ChatCompletionCreateParamsStreaming;
 
 	// Include tool definitions if provided
 	if (tools && tools.length > 0) {
 		const toolDefs = convertTools(tools);
 		if (toolDefs.tools) {
-			result.tools = toolDefs.tools;
+			Object.assign(result, { tools: toolDefs.tools });
 		}
 		if (toolDefs.tool_choice) {
-			result.tool_choice = toolDefs.tool_choice;
+			Object.assign(result, { tool_choice: toolDefs.tool_choice });
 		}
 	}
 
@@ -131,7 +130,7 @@ export function convertRequestToOpenAI(messages: LanguageModelChatRequestMessage
  * Convert VS Code tool definitions to OpenAI function tool definitions.
  * @param tools Array of VS Code LanguageModelChatTool objects
  */
-export function convertTools(tools: LanguageModelChatTool[]): { tools?: any[]; tool_choice?: any } {
+export function convertTools(tools: LanguageModelChatTool[]): { tools?: unknown[]; tool_choice?: unknown } {
 	if (!tools || tools.length === 0) {
 		return {};
 	}
