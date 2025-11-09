@@ -210,26 +210,6 @@ Use your existing API keys from major providers:
 - Verify configuration schema is valid
 - Restart VS Code after configuration changes
 
-## 📝 Migration from Synthetic
-
-If you're migrating from the Synthetic provider:
-
-1. **API Key**: Your Synthetic API key won't work with NanoGPT
-   - Get a new API key from https://nano-gpt.com/user-settings/api
-   - The extension will prompt for your new key automatically
-
-2. **Model Names**: Some model names may have changed
-   - Check the updated model list in the provider selection
-   - Reconfigure any custom temperature settings
-
-3. **Configuration**: Update your settings:
-   ```json
-   {
-     "synthetic.modelTemperatures": { ... }  // Remove this
-     "nanogpt.modelTemperatures": { ... }    // Add this
-   }
-   ```
-
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
