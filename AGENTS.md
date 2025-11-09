@@ -2,15 +2,15 @@
 
 ## Project Overview
 
-This is a VS Code extension that provides a GitHub Copilot Chat provider for the Synthetic API. It acts as a bridge between VS Code's Language Model Chat API and Synthetic's OpenAI-compatible API, enabling users to use Synthetic's language models directly within GitHub Copilot Chat in VS Code.
+This is a VS Code extension that provides a GitHub Copilot Chat provider for the NanoGPT API. It acts as a bridge between VS Code's Language Model Chat API and NanoGPT's advanced OpenAI-compatible API, enabling users to use NanoGPT's language models with advanced features (reasoning, memory, search, BYOK) directly within GitHub Copilot Chat in VS Code.
 
 **Key Technologies**: TypeScript, VS Code Extension API, OpenAI SDK, Zod validation, Tiktoken
 
 **Main Components**:
 - `src/extension.ts` - Extension entry point and command registration
 - `src/provider.ts` - Core chat provider implementation
-- `src/syntheticModels.ts` - Synthetic API integration and model management
-- `src/config.ts` - Configuration management (API keys, temperatures)
+- `src/nanogptModels.ts` - NanoGPT API integration and model management
+- `src/config.ts` - Configuration management (API keys, temperatures, features)
 - `src/utils.ts` - API conversion utilities (VS Code ↔ OpenAI)
 - `src/thinkParser.ts` - Thinking tags parsing for reasoning content
 - `src/types.ts` - TypeScript definitions and Zod schemas
@@ -91,13 +91,14 @@ npm run watch-tests
 ## Architecture Patterns
 
 ### Provider Pattern
-The `SyntheticChatModelProvider` implements `LanguageModelChatProvider` interface:
+The `NanoGPTChatModelProvider` implements `LanguageModelChatProvider` interface:
 - Handles chat requests and streaming responses
 - Manages API authentication and model fetching
 - Converts between VS Code and OpenAI API formats
+- Integrates advanced NanoGPT features (reasoning, memory, search, BYOK)
 
 ### Service Layer
-- `SyntheticModelsService` handles all Synthetic API interactions
+- `NanoGPTModelsService` handles all NanoGPT API interactions
 - Caches model details from external APIs
 - Provides fallback mechanisms for API failures
 
@@ -113,12 +114,12 @@ The `SyntheticChatModelProvider` implements `LanguageModelChatProvider` interfac
 
 ## API Integration Details
 
-**Synthetic API Endpoints**:
-- Models list: `https://api.synthetic.new/openai/v1/models`
-- Model details: `https://models.dev/api.json`
+**NanoGPT API Endpoints**:
+- Models list: `https://nano-gpt.com/api/v1/models`
+- Base API: `https://nano-gpt.com/api/v1`
 
 **OpenAI SDK Configuration**:
-- Custom base URL for Synthetic API
+- Custom base URL for NanoGPT API
 - Streaming responses enabled
 - User-Agent header for analytics
 
@@ -137,7 +138,7 @@ The `SyntheticChatModelProvider` implements `LanguageModelChatProvider` interfac
 5. Run `npm run lint` and `npm run test` to verify changes
 
 ### Modifying API Integration
-- Synthetic API calls are in `syntheticModels.ts`
+- NanoGPT API calls are in `nanogptModels.ts`
 - OpenAI conversion logic is in `utils.ts`
 - Error handling should include user notifications
 - Always validate API responses using existing Zod schemas
@@ -167,23 +168,23 @@ npm run lint
 - Handle network failures gracefully
 
 **User Data**:
-- Chat messages are sent to Synthetic API
+- Chat messages are sent to NanoGPT API
 - No message content is logged locally
 - Respect VS Code privacy settings
 
 ## Extension Packaging & Distribution
 
-**Package Command**: `npm run package` creates `synthetic-copilot-provider.vsix`
+**Package Command**: `npm run package` creates `nanogpt-copilot-provider.vsix`
 
 **Installation Methods**:
 1. VS Code: Extensions > Install from VSIX
-2. Command line: `code --install-extension synthetic-copilot-provider.vsix`
+2. Command line: `code --install-extension nanogpt-copilot-provider.vsix`
 3. VS Code Marketplace (when published)
 
 **Extension Manifest**: Check `package.json` for:
-- Activation events: `onLanguageModelChat:synthetic`
-- Commands contributed: `synthetic.manage`, `synthetic.configureTemperature`
-- Configuration schema for temperature settings
+- Activation events: `onLanguageModelChat:nanogpt`
+- Commands contributed: `nanogpt.manage`, `nanogpt.configureTemperature`
+- Configuration schema for temperature and feature settings
 
 ## Troubleshooting Common Issues
 
@@ -204,7 +205,7 @@ npm run lint
 
 **API Integration Issues**:
 - Verify API key is correctly configured
-- Check network connectivity to Synthetic API
+- Check network connectivity to NanoGPT API
 - Review model availability and permissions
 
 ## Pull Request Guidelines
