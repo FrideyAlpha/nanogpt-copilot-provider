@@ -49,46 +49,46 @@
 						"maximum": 2
 					}
 				},
-				"reasoning.enabled": {
+				"nanogpt.reasoning.enabled": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enable reasoning capabilities for NanoGPT models."
 				},
-				"reasoning.defaultEffort": {
+				"nanogpt.reasoning.defaultEffort": {
 					"type": "string",
 					"enum": ["low", "medium", "high"],
 					"default": "medium",
 					"description": "Default reasoning effort level for NanoGPT models."
 				},
-				"memory.enabled": {
+				"nanogpt.memory.enabled": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enable memory capabilities for NanoGPT models."
 				},
-				"memory.defaultDays": {
+				"nanogpt.memory.defaultDays": {
 					"type": "number",
 					"default": 30,
 					"minimum": 1,
 					"maximum": 365,
 					"description": "Default memory retention days for NanoGPT models."
 				},
-				"search.enabled": {
+				"nanogpt.search.enabled": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enable search capabilities for NanoGPT models."
 				},
-				"search.defaultMode": {
+				"nanogpt.search.defaultMode": {
 					"type": "string",
 					"enum": ["standard", "deep"],
 					"default": "standard",
 					"description": "Default search mode for NanoGPT models."
 				},
-				"byok.enabled": {
+				"nanogpt.byok.enabled": {
 					"type": "boolean",
 					"default": false,
 					"description": "Enable BYOK (Bring Your Own Key) capabilities for NanoGPT models."
 				},
-				"byok.defaultProvider": {
+				"nanogpt.byok.defaultProvider": {
 					"type": "string",
 					"enum": ["openai", "anthropic", "google"],
 					"default": "openai",
