@@ -1,4 +1,6 @@
 import * as vscode from "vscode";
+import type { ModelType } from "./types";
+import { ENDPOINT_CONFIGS } from "./nanogptModels";
 
 /**
  * Get the custom temperature for a given model
@@ -270,8 +272,54 @@ async function configureBYOK(): Promise<void> {
 	}
 }
 
+async function configureModelTypes(): Promise<void> {
+	const config = vscode.workspace.getConfiguration("nanogpt");
+	const currentModelType = config.get<ModelType>("modelTypes") || "all";
+
+	// Create QuickPick items for each model type
+	const modelTypeOptions = [
+		{
+			label: "All Models",
+			description: "Access to all available NanoGPT models",
+			modelType: "all" as ModelType,
+			picked: currentModelType === "all",
+		},
+		{
+			label: "Premium Models",
+			description: "Access to premium NanoGPT models",
+			modelType: "premium" as ModelType,
+			picked: currentModelType === "premium",
+		},
+		{
+			label: "Subscription Models",
+			description: "Access to subscription-based NanoGPT models",
+			modelType: "subscription" as ModelType,
+			picked: currentModelType === "subscription",
+		},
+	];
+
+	const selected = await vscode.window.showQuickPick(modelTypeOptions, {
+		placeHolder: "Select model type for API endpoints",
+		ignoreFocusOut: true,
+	});
+
+	if (!selected) {
+		return; // User cancelled
+	}
+
+	// Update the configuration
+	await config.update("modelTypes", selected.modelType, vscode.ConfigurationTarget.Global);
+
+	// Show confirmation message
+	const endpointInfo = ENDPOINT_CONFIGS[selected.modelType as ModelType];
+	vscode.window.showInformationMessage(
+		`Model type set to ${selected.label}. API endpoint: ${endpointInfo.url}`
+	);
+}
+
 export async function showNanoGPTConfigUI(secrets: vscode.SecretStorage): Promise<void> {
 	const options: Record<string, () => Promise<void>> = {
+		"Configure Model Types": configureModelTypes,
 		"Configure Model Temperature": () => configureModelTemperature(secrets),
 		"Configure Reasoning": configureReasoning,
 		"Configure Memory": configureMemory,
