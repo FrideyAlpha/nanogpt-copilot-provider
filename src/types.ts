@@ -1,15 +1,10 @@
 import { z } from "zod";
 
-const ModelModalitySpec = z.literal("text").or(z.literal("image")).or(z.literal("file"));
-
-const QuantizationSpec = z.literal("int4")
-  .or(z.literal("int8"))
-  .or(z.literal("fp4"))
-  .or(z.literal("fp6"))
-  .or(z.literal("fp8"))
-  .or(z.literal("fp16"))
-  .or(z.literal("bf16"))
-  .or(z.literal("fp32"));
+const ModelFeatureSpec = z.literal("tools")
+  .or(z.literal("json_mode"))
+  .or(z.literal("structured_outputs"))
+  .or(z.literal("web_search"))
+  .or(z.literal("reasoning"));
 
 const SamplingParameterSpec = z.literal("temperature")
   .or(z.literal("top_p"))
@@ -20,18 +15,14 @@ const SamplingParameterSpec = z.literal("temperature")
   .or(z.literal("stop"))
   .or(z.literal("seed"));
 
-const ModelFeatureSpec = z.literal("tools")
-  .or(z.literal("json_mode"))
-  .or(z.literal("structured_outputs"))
-  .or(z.literal("web_search"))
-  .or(z.literal("reasoning"));
-
 
 
 // NanoGPT Model Details Schema (OpenAI-compatible)
 const NanoGPTModelDetailsSchema = z.object({
 	// Required OpenAI-compatible params
 	id: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
 	object: z.string().default("model"),
 	created: z.number().optional(),
 
@@ -64,6 +55,37 @@ export const NanoGPTModelsResponseSchema = z.object({
 	object: z.string(),
 	data: z.array(NanoGPTModelDetailsSchema),
 });
+
+// Model Types Configuration
+export type ModelType = "all" | "premium" | "subscription";
+
+// Model categorization based on endpoint source
+export interface CategorizedModel extends NanoGPTModelDetails {
+	endpoint: string;
+	category: ModelType;
+}
+
+// API endpoints for different model types
+export const MODEL_ENDPOINTS = {
+	all: "/models?detailed=true",
+	premium: "https://nano-gpt.com/api/paid/v1/models?detailed=true",
+	subscription: "https://nano-gpt.com/api/subscription/v1/models?detailed=true"
+} as const;
+
+// API endpoint configuration
+export interface EndpointConfig {
+	url: string;
+	category: ModelType;
+	displayName: string;
+	description: string;
+}
+
+// Retry configuration
+export interface RetryConfig {
+	maxAttempts: number;
+	delayMs: number;
+	backoffMultiplier: number;
+}
 
 // NanoGPT Configuration Schema
 export const NanoGPTConfigurationSchema = z.object({
