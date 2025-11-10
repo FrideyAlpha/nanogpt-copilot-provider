@@ -49,6 +49,12 @@
 						"maximum": 2
 					}
 				},
+				"nanogpt.modelTypes": {
+					"type": "string",
+					"enum": ["all", "premium", "subscription"],
+					"default": "all",
+					"description": "Model type selection for NanoGPT API endpoints."
+				},
 				"nanogpt.reasoning.enabled": {
 					"type": "boolean",
 					"default": true,
@@ -62,7 +68,7 @@
 				},
 				"nanogpt.memory.enabled": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Enable memory capabilities for NanoGPT models."
 				},
 				"nanogpt.memory.defaultDays": {
@@ -74,7 +80,7 @@
 				},
 				"nanogpt.search.enabled": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Enable search capabilities for NanoGPT models."
 				},
 				"nanogpt.search.defaultMode": {
