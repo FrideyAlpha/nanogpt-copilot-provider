@@ -1,6 +1,6 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
-import { NanoGPTModelsService, BASE_URL, DEFAULT_CONTEXT_LENGTH, DEFAULT_MAX_OUTPUT_TOKENS } from "../nanogptModels";
+import { NanoGPTModelsService } from "../nanogptModels";
 import { NanoGPTModelsResponseSchema } from "../types";
 import { z } from "zod";
 
@@ -19,14 +19,12 @@ suite("NanoGPT Models Service Tests", () => {
 	test("should return undefined for missing API key when silent", async () => {
 		// Mock secret storage
 		const mockSecrets = {
-			get: async (key: string) => {
-				if (key === "nanogpt.apiKey") {return undefined;}
+			get: async (_key: string) => {
 				return undefined;
 			},
-			store: async (key: string, value: string) => {},
-			delete: async (key: string) => {},
+			store: async (_key: string, _value: string) => {},
+			delete: async (_key: string) => {},
 			onDidChange: {
-				// @ts-ignore - Mock event emitter
 				dispose: () => {}
 			}
 		} as unknown as vscode.SecretStorage;
@@ -36,7 +34,7 @@ suite("NanoGPT Models Service Tests", () => {
 	});
 
 	test("should handle fetch models error", async () => {
-		const apiKey = "test-api-key";
+		const apiKey = "e4a238f8-a9cd-41c0-990e-5b6230d97c99";
 
 		// Mock fetch to return error
 		const originalFetch = global.fetch;
@@ -132,7 +130,7 @@ suite("NanoGPT Models Service Tests", () => {
 			);
 
 			assert.strictEqual(result.length, 2, "Should return 2 models");
-			
+
 			const model1 = result[0];
 			assert.strictEqual(model1.id, "gpt-4o", "Model 1 ID should be correct");
 			assert.strictEqual(model1.capabilities.imageInput, true, "Model 1 should have vision");
@@ -175,7 +173,7 @@ suite("NanoGPT Models Service Tests", () => {
 		};
 
 		test("should validate correct API response format", async () => {
-			const apiKey = "test-api-key";
+			const apiKey = "e4a238f8-a9cd-41c0-990e-5b6230d97c99";
 
 			// Mock fetch to return valid response
 			const originalFetch = global.fetch;
@@ -198,7 +196,7 @@ suite("NanoGPT Models Service Tests", () => {
 		});
 
 		test("should reject API response missing required 'id' field", async () => {
-			const apiKey = "test-api-key";
+			const apiKey = "e4a238f8-a9cd-41c0-990e-5b6230d97c99";
 			const invalidResponse = {
 				"object": "list",
 				"data": [
@@ -231,7 +229,7 @@ suite("NanoGPT Models Service Tests", () => {
 		});
 
 		test("should reject API response missing required 'object' field", async () => {
-			const apiKey = "test-api-key";
+			const apiKey = "e4a238f8-a9cd-41c0-990e-5b6230d97c99";
 			const invalidResponse = {
 				"data": [
 					{
@@ -263,7 +261,7 @@ suite("NanoGPT Models Service Tests", () => {
 		});
 
 		test("should reject API response with wrong data type for 'id' field", async () => {
-			const apiKey = "test-api-key";
+			const apiKey = "e4a238f8-a9cd-41c0-990e-5b6230d97c99";
 			const invalidResponse = {
 				"object": "list",
 				"data": [
@@ -296,7 +294,7 @@ suite("NanoGPT Models Service Tests", () => {
 		});
 
 		test("should reject API response missing 'data' field", async () => {
-			const apiKey = "test-api-key";
+			const apiKey = "e4a238f8-a9cd-41c0-990e-5b6230d97c99";
 			const invalidResponse = {
 				// Missing 'data' field
 				"object": "list"
@@ -322,7 +320,7 @@ suite("NanoGPT Models Service Tests", () => {
 		});
 
 		test("should reject API response with 'data' as non-array", async () => {
-			const apiKey = "test-api-key";
+			const apiKey = "e4a238f8-a9cd-41c0-990e-5b6230d97c99";
 			const invalidResponse = {
 				"object": "list",
 				"data": "not-an-array" // Should be array, not string
@@ -348,7 +346,7 @@ suite("NanoGPT Models Service Tests", () => {
 		});
 
 		test("should reject API response with individual model 'object' as non-string", async () => {
-			const apiKey = "test-api-key";
+			const apiKey = "e4a238f8-a9cd-41c0-990e-5b6230d97c99";
 			const invalidResponse = {
 				"object": "list",
 				"data": [
@@ -381,7 +379,7 @@ suite("NanoGPT Models Service Tests", () => {
 		});
 
 		test("should throw error when data array is empty", async () => {
-			const apiKey = "test-api-key";
+			const apiKey = "e4a238f8-a9cd-41c0-990e-5b6230d97c99";
 			const emptyResponse = {
 				"object": "list",
 				"data": []
