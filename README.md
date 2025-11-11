@@ -109,7 +109,7 @@ Configure NanoGPT-specific features:
 ## 🛠️ Development
 
 ```bash
-git clone https://github.com/nanogpt/nanogpt-copilot-provider.git
+git clone https://github.com/FrideyAlpha/nanogpt-copilot-provider.git
 
 cd nanogpt-copilot-provider
 
@@ -235,8 +235,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: https://docs.nano-gpt.com
-- **Issues**: https://github.com/nanogpt/nanogpt-copilot-provider/issues
-- **Discussions**: https://github.com/nanogpt/nanogpt-copilot-provider/discussions
+- **Issues**: https://github.com/FrideyAlpha/nanogpt-copilot-provider/issues
+- **Discussions**: https://github.com/FrideyAlpha/nanogpt-copilot-provider/discussions
 - **Email**: support@nano-gpt.com
 
 ---
