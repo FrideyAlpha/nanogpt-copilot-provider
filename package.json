@@ -20,7 +20,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/nanogpt/nanogpt-copilot-provider"
+		"url": "https://github.com/FrideyAlpha/nanogpt-copilot-provider"
 	},
 	"contributes": {
 		"languageModelChatProviders": [
